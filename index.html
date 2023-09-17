@@ -3,45 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Etherscan Top Holders</title>
+    <title>Etherscan Token Holders</title>
 </head>
 <body>
-    <h1>Etherscan Top Holders</h1>
+    <h1>Etherscan Token Holders</h1>
     <p>Enter the Ethereum contract address:</p>
     <input type="text" id="contractAddress" placeholder="0x...">
-    <button onclick="fetchTopHolders()">Fetch Top Holders</button>
-    <h2>Top Holders:</h2>
-    <ul id="topHoldersList"></ul>
+    <button onclick="fetchTokenHolders()">Fetch Token Holders</button>
+    <h2>Token Holders:</h2>
+    <ul id="tokenHoldersList"></ul>
 
     <script>
-        async function fetchTopHolders() {
+        async function fetchTokenHolders() {
             const contractAddress = document.getElementById("contractAddress").value;
-            const etherscanApiKey = 'AFFD2SXUNV3RY968V4442KMBP4928IBMJ7'; // Replace with your Etherscan API key
-            const apiUrl = `https://api.etherscan.io/api?module=token&action=tokenholderlist&contractaddress=${contractAddress}&page=1&offset=500&apikey=${etherscanApiKey}`;
+
+            if (!contractAddress) {
+                alert("Please enter a contract address.");
+                return;
+            }
 
             try {
-                const response = await fetch(apiUrl);
-                const data = await response.json();
+                const url = `https://etherscan.io/token/generic-tokenholders2?a=${contractAddress}&s=0&p=1`;
+                const response = await fetch(url);
+                const text = await response.text();
 
-                if (data.status === "1") {
-                    const topHolders = data.result;
+                // Create a temporary HTML element to parse the response text
+                const tempElement = document.createElement('div');
+                tempElement.innerHTML = text;
 
-                    const topHoldersList = document.getElementById("topHoldersList");
-                    topHoldersList.innerHTML = "";
-
-                    topHolders.forEach(holder => {
-                        const listItem = document.createElement("li");
-                        listItem.textContent = `Address: ${holder.address}, Balance: ${holder.balance}`;
-                        topHoldersList.appendChild(listItem);
+                // Extract the token holders data
+                const holdersData = Array.from(tempElement.querySelectorAll('.table-hover tbody tr'))
+                    .map(row => {
+                        const address = row.querySelector('.hash-tag.text-truncate').textContent.trim();
+                        const balance = row.querySelector('.d-none.d-md-table-cell').textContent.trim();
+                        return `${address} - Balance: ${balance}`;
                     });
-                } else {
-                    alert("Failed to fetch top holders. Please check the contract address.");
-                }
+
+                const tokenHoldersList = document.getElementById("tokenHoldersList");
+                tokenHoldersList.innerHTML = "";
+
+                holdersData.forEach(holder => {
+                    const listItem = document.createElement("li");
+                    listItem.textContent = holder;
+                    tokenHoldersList.appendChild(listItem);
+                });
             } catch (error) {
-                console.error("Error fetching top holders:", error);
+                console.error("Error fetching token holders:", error);
             }
         }
     </script>
 </body>
 </html>
-
