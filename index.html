@@ -3,52 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Etherscan Transfer Events</title>
+    <title>Etherscan Top Holders</title>
 </head>
 <body>
-    <h1>Etherscan Transfer Events</h1>
+    <h1>Etherscan Top Holders</h1>
     <p>Enter the Ethereum contract address:</p>
     <input type="text" id="contractAddress" placeholder="0x...">
-    <button onclick="fetchTransferEvents()">Fetch Transfer Events</button>
-    <h2>Transfer Events:</h2>
-    <ul id="transferEventsList"></ul>
+    <button onclick="fetchTopHolders()">Fetch Top Holders</button>
+    <h2>Top Holders:</h2>
+    <ul id="topHoldersList"></ul>
 
     <script>
-        async function fetchTransferEvents() {
+        async function fetchTopHolders() {
             const contractAddress = document.getElementById("contractAddress").value;
             const etherscanApiKey = 'AFFD2SXUNV3RY968V4442KMBP4928IBMJ7'; // Replace with your Etherscan API key
-
-            if (!contractAddress) {
-                alert("Please enter a contract address.");
-                return;
-            }
-
-            const apiUrl = `https://api.etherscan.io/api?module=logs&action=getLogs&fromBlock=0&toBlock=latest&address=${contractAddress}&topic0=0x&apikey=${etherscanApiKey}`;
+            const apiUrl = `https://api.etherscan.io/api?module=token&action=tokenholderlist&contractaddress=${contractAddress}&page=1&offset=500&apikey=${etherscanApiKey}`;
 
             try {
                 const response = await fetch(apiUrl);
                 const data = await response.json();
 
                 if (data.status === "1") {
-                    const transferEvents = data.result;
+                    const topHolders = data.result;
 
-                    const transferEventsList = document.getElementById("transferEventsList");
-                    transferEventsList.innerHTML = "";
+                    const topHoldersList = document.getElementById("topHoldersList");
+                    topHoldersList.innerHTML = "";
 
-                    transferEvents.forEach(event => {
+                    topHolders.forEach(holder => {
                         const listItem = document.createElement("li");
-                        listItem.textContent = `From: ${event.topics[1]}, To: ${event.topics[2]}, Value: ${parseInt(event.data, 16)}`;
-                        transferEventsList.appendChild(listItem);
+                        listItem.textContent = `Address: ${holder.address}, Balance: ${holder.balance}`;
+                        topHoldersList.appendChild(listItem);
                     });
                 } else {
-                    alert("Failed to fetch transfer events. Please check the contract address.");
+                    alert("Failed to fetch top holders. Please check the contract address.");
                 }
             } catch (error) {
-                console.error("Error fetching transfer events:", error);
+                console.error("Error fetching top holders:", error);
             }
         }
     </script>
 </body>
 </html>
-
 
