@@ -44,7 +44,6 @@
 
                 if (data.success) {
                     const tokenHolders = data.data;
-                    const walletAddress = tokenHolders[0].address; // Assuming you want the first wallet address
 
                     const tokenHoldersList = document.getElementById("tokenHoldersList");
                     tokenHoldersList.innerHTML = "";
@@ -54,9 +53,6 @@
                         listItem.textContent = `Address: ${holder.address}, Balance: ${holder.balance}`;
                         tokenHoldersList.appendChild(listItem);
                     });
-
-                    // Fetch recent buy transactions for the wallet address
-                    fetchBuyTransactions(walletAddress);
                 } else {
                     alert("Failed to fetch token holders. Please check the contract address.");
                 }
