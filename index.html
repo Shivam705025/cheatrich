@@ -11,45 +11,64 @@
     <input type="text" id="contractAddress" placeholder="0x...">
     <button onclick="fetchTokenHolders()">Fetch Token Holders</button>
     <h2>Token Holders:</h2>
-    <ul id="tokenHoldersList"></ul>
+    <table id="tokenHoldersTable">
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Address</th>
+                <th>Quantity</th>
+                <th>Percentage</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
 
     <script>
-        async function fetchTokenHolders() {
+        function fetchTokenHolders() {
             const contractAddress = document.getElementById("contractAddress").value;
+            const tableBody = document.querySelector("#tokenHoldersTable tbody");
+            let page = 1;
 
-            if (!contractAddress) {
-                alert("Please enter a contract address.");
-                return;
-            }
+            function fetchData() {
+                const url = `https://etherscan.io/token/generic-tokenholders2?a=${contractAddress}&s=0&p=${page}`;
 
-            try {
-                const url = `https://etherscan.io/token/generic-tokenholders2?a=${contractAddress}&s=0&p=1`;
-                const response = await fetch(url);
-                const text = await response.text();
+                fetch(url)
+                    .then(response => response.text())
+                    .then(data => {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(data, "text/html");
+                        const tableRows = doc.querySelectorAll("table.table tbody tr");
 
-                // Create a temporary HTML element to parse the response text
-                const tempElement = document.createElement('div');
-                tempElement.innerHTML = text;
+                        if (tableRows.length > 0) {
+                            tableRows.forEach(row => {
+                                const cells = row.querySelectorAll("td");
+                                if (cells.length >= 4) {
+                                    const rank = cells[0].textContent.trim();
+                                    const address = cells[1].textContent.trim();
+                                    const quantity = cells[2].textContent.trim();
+                                    const percentage = cells[3].textContent.trim();
 
-                // Extract the token holders data
-                const holdersData = Array.from(tempElement.querySelectorAll('.table-hover tbody tr'))
-                    .map(row => {
-                        const address = row.querySelector('.hash-tag.text-truncate').textContent.trim();
-                        const balance = row.querySelector('.d-none.d-md-table-cell').textContent.trim();
-                        return `${address} - Balance: ${balance}`;
+                                    const newRow = document.createElement("tr");
+                                    newRow.innerHTML = `<td>${rank}</td><td>${address}</td><td>${quantity}</td><td>${percentage}</td>`;
+                                    tableBody.appendChild(newRow);
+                                }
+                            });
+
+                            page++;
+                            fetchData(); // Fetch the next page
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error fetching data:", error);
                     });
-
-                const tokenHoldersList = document.getElementById("tokenHoldersList");
-                tokenHoldersList.innerHTML = "";
-
-                holdersData.forEach(holder => {
-                    const listItem = document.createElement("li");
-                    listItem.textContent = holder;
-                    tokenHoldersList.appendChild(listItem);
-                });
-            } catch (error) {
-                console.error("Error fetching token holders:", error);
             }
+
+            // Clear existing table rows if any
+            tableBody.innerHTML = "";
+
+            // Start fetching data
+            fetchData();
         }
     </script>
 </body>
