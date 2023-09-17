@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chainbase Token Holders</title>
     <style>
+        /* Your CSS styles here */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -82,6 +83,22 @@
             margin-top: 20px;
         }
 
+        /* Tree structure styles */
+        .node circle {
+            fill: #fff;
+            stroke: steelblue;
+            stroke-width: 3px;
+        }
+
+        .node text {
+            font-size: 14px;
+        }
+
+        .link {
+            fill: none;
+            stroke: #ccc;
+            stroke-width: 2px;
+        }
     </style>
 </head>
 <body>
@@ -94,6 +111,7 @@
         <button onclick="fetchTokenHolders()">Fetch Token Holders</button>
         <h2>Token Holders:</h2>
         <ul id="tokenHoldersList"></ul>
+        <h2>Token Holder Tree:</h2>
         <div class="tree-container" id="treeContainer"></div>
     </div>
     
