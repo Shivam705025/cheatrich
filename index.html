@@ -23,7 +23,7 @@
                 return;
             }
 
-            const apiUrl = `https://api.etherscan.io/api?module=account&action=tokenaccountbalance&contractaddress=${contractAddress}&tag=latest&page=1&offset=500&apikey=${etherscanApiKey}`;
+            const apiUrl = `https://api.etherscan.io/api?module=account&action=tokenholderlist&contractaddress=${contractAddress}&page=1&offset=500&sort=desc&apikey=${etherscanApiKey}`;
 
             try {
                 const response = await fetch(apiUrl);
@@ -50,3 +50,4 @@
     </script>
 </body>
 </html>
+
