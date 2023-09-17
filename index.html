@@ -40,7 +40,7 @@
                 const response = await fetch(apiUrl, requestOptions);
                 const data = await response.json();
 
-                if (data.success) {
+                if (data.code === 0) {
                     const tokenHolders = data.data;
 
                     const tokenHoldersList = document.getElementById("tokenHoldersList");
@@ -48,7 +48,7 @@
 
                     tokenHolders.forEach(holder => {
                         const listItem = document.createElement("li");
-                        listItem.textContent = `Address: ${holder.address}, Balance: ${holder.balance}`;
+                        listItem.textContent = `Address: ${holder.wallet_address}`;
                         tokenHoldersList.appendChild(listItem);
                     });
                 } else {
@@ -60,4 +60,4 @@
         }
     </script>
 </body>
-</html> 
+</html>
