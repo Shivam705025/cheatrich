@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Top 100 Coins on Ethereum</title>
+</head>
+<body>
+    <h1>Top 100 Coins on Ethereum</h1>
+    <h2>Coins Deployed Within the Last Year:</h2>
+    <ul id="topCoinsList"></ul>
+
+    <script>
+        async function fetchTopCoins() {
+            const etherscanApiKey = 'AFFD2SXUNV3RY968V4442KMBP4928IBMJ7'; // Replace with your Etherscan API key
+
+            const currentTimestamp = Math.floor(Date.now() / 1000); // Current timestamp in seconds
+            const oneYearAgoTimestamp = currentTimestamp - 31536000; // Timestamp 1 year ago (approx. 31,536,000 seconds)
+
+            const apiUrl = `https://api.etherscan.io/api?module=account&action=txlistinternal&startblock=0&endblock=999999999&sort=asc&apikey=${etherscanApiKey}`;
+
+            try {
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+
+                if (data.status === "1") {
+                    const transactions = data.result;
+
+                    // Filter transactions to find token contract deployments within the last year
+                    const recentTokenDeployments = transactions.filter(tx => {
+                        const timestamp = parseInt(tx.timeStamp, 10);
+                        return timestamp >= oneYearAgoTimestamp && tx.to === null; // Check for contract creation transactions
+                    });
+
+                    // Sort the deployments by timestamp (latest first)
+                    recentTokenDeployments.sort((a, b) => parseInt(b.timeStamp, 10) - parseInt(a.timeStamp, 10));
+
+                    // Extract the top 100 token contract addresses
+                    const top100TokenContracts = recentTokenDeployments.slice(0, 100).map(tx => tx.contractAddress);
+
+                    // Display the contract addresses or further process them as needed
+                    const topCoinsList = document.getElementById("topCoinsList");
+                    topCoinsList.innerHTML = "";
+
+                    top100TokenContracts.forEach(contractAddress => {
+                        const listItem = document.createElement("li");
+                        listItem.textContent = `Token Contract Address: ${contractAddress}`;
+                        topCoinsList.appendChild(listItem);
+                    });
+                } else {
+                    alert("Failed to fetch recent transactions. Please check your API key.");
+                }
+            } catch (error) {
+                console.error("Error fetching recent transactions:", error);
+            }
+        }
+
+        // Call the function to fetch and display the top 100 coins
+        fetchTopCoins();
+    </script>
+</body>
+</html>
