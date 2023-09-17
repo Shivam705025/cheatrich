@@ -84,13 +84,7 @@
         }
 
         /* Tree structure styles */
-        .node circle {
-            fill: #ff6666; /* Lighter pink circles */
-            stroke: #ff4d4d; /* Darker pink border for circles */
-            stroke-width: 3px;
-        }
-
-        .node text {
+        .node {
             font-size: 14px;
             fill: #333; /* Dark text color */
         }
@@ -113,118 +107,114 @@
         <h2>Token Holders:</h2>
         <ul id="tokenHoldersList"></ul>
         <h2>Token Holder Tree:</h2>
-        <div class="tree-container" id="treeContainer"></div>
+        <svg class="tree-container" id="treeContainer"></svg>
     </div>
     
     <!-- Add D3.js library -->
-<!-- Include D3.js library -->
-<script src="https://d3js.org/d3.v7.min.js"></script>
-<script>
-    async function fetchTokenHolders() {
-        const contractAddressesInput = document.getElementById("contractAddresses").value;
-        const contractAddresses = contractAddressesInput.split(',').map(address => address.trim());
-        const chainbaseApiKey = '2VXDBxSex1QphfGODii8qBekznm'; // Replace with your Chainbase API key
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script>
+        async function fetchTokenHolders() {
+            const contractAddressesInput = document.getElementById("contractAddresses").value;
+            const contractAddresses = contractAddressesInput.split(',').map(address => address.trim());
+            const chainbaseApiKey = '2VXDBxSex1QphfGODii8qBekznm'; // Replace with your Chainbase API key
 
-        if (!contractAddressesInput) {
-            alert("Please enter contract addresses.");
-            return;
-        }
+            if (!contractAddressesInput) {
+                alert("Please enter contract addresses.");
+                return;
+            }
 
-        const tokenHoldersList = document.getElementById("tokenHoldersList");
-        tokenHoldersList.innerHTML = ""; // Clear previous results
+            const tokenHoldersList = document.getElementById("tokenHoldersList");
+            tokenHoldersList.innerHTML = ""; // Clear previous results
 
-        for (const contractAddress of contractAddresses) {
-            const apiUrl = `https://api.chainbase.online/v1/token/top-holders?chain_id=1&contract_address=${contractAddress}&page=1&limit=100`;
+            for (const contractAddress of contractAddresses) {
+                const apiUrl = `https://api.chainbase.online/v1/token/top-holders?chain_id=1&contract_address=${contractAddress}&page=1&limit=100`;
 
-            const headers = new Headers({
-                'x-api-key': chainbaseApiKey,
-                'accept': 'application/json'
-            });
+                const headers = new Headers({
+                    'x-api-key': chainbaseApiKey,
+                    'accept': 'application/json'
+                });
 
-            const requestOptions = {
-                method: 'GET',
-                headers: headers,
-                redirect: 'follow'
-            };
+                const requestOptions = {
+                    method: 'GET',
+                    headers: headers,
+                    redirect: 'follow'
+                };
 
-            try {
-                const response = await fetch(apiUrl, requestOptions);
-                const data = await response.json();
+                try {
+                    const response = await fetch(apiUrl, requestOptions);
+                    const data = await response.json();
 
-                if (data.code === 0) {
-                    const tokenHolders = data.data;
+                    if (data.code === 0) {
+                        const tokenHolders = data.data;
 
-                    tokenHolders.forEach(holder => {
-                        const listItem = document.createElement("li");
-                        listItem.textContent = `Contract Address: ${contractAddress}, Holder Address: ${holder.wallet_address}`;
-                        tokenHoldersList.appendChild(listItem);
-                    });
+                        tokenHolders.forEach(holder => {
+                            const listItem = document.createElement("li");
+                            listItem.textContent = `Contract Address: ${contractAddress}, Holder Address: ${holder.wallet_address}`;
+                            tokenHoldersList.appendChild(listItem);
+                        });
 
-                    // Generate tree structure
-                    generateTree(contractAddress, tokenHolders);
-                } else {
-                    alert(`Failed to fetch token holders for contract address ${contractAddress}.`);
+                        // Generate tree structure
+                        generateTree(contractAddress, tokenHolders);
+                    } else {
+                        alert(`Failed to fetch token holders for contract address ${contractAddress}.`);
+                    }
+                } catch (error) {
+                    console.error(`Error fetching token holders for contract address ${contractAddress}:`, error);
                 }
-            } catch (error) {
-                console.error(`Error fetching token holders for contract address ${contractAddress}:`, error);
             }
         }
-    }
 
-    function generateTree(contractAddress, tokenHolders) {
-        const treeData = {
-            name: contractAddress,
-            children: tokenHolders.map(holder => ({
-                name: holder.wallet_address
-            }))
-        };
+        function generateTree(contractAddress, tokenHolders) {
+            const treeData = {
+                name: contractAddress,
+                children: tokenHolders.map(holder => ({
+                    name: holder.wallet_address
+                }))
+            };
 
-        const width = 800;
-        const height = 400;
+            const width = 800;
+            const height = 400;
 
-        const treeLayout = d3.tree().size([width, height]);
-        const root = d3.hierarchy(treeData);
+            const treeLayout = d3.tree().size([height, width]);
 
-        treeLayout(root);
+            const svg = d3.select("#treeContainer")
+                .attr("width", width)
+                .attr("height", height)
+                .append("g")
+                .attr("transform", "translate(100, 0)");
 
-        const svg = d3.select("#treeContainer")
-            .append("svg")
-            .attr("width", width)
-            .attr("height", height);
+            const root = d3.hierarchy(treeData);
 
-        const g = svg.append("g")
-            .attr("transform", "translate(50,50)");
+            treeLayout(root);
 
-        const link = g.selectAll(".link")
-            .data(root.links())
-            .enter()
-            .append("path")
-            .attr("class", "link")
-            .attr("d", d => {
-                return `M${d.source.x},${d.source.y}C${d.source.x},${(d.source.y + d.target.y) / 2} ${d.target.x},${(d.source.y + d.target.y) / 2} ${d.target.x},${d.target.y}`;
-            });
+            const link = svg.selectAll(".link")
+                .data(root.links())
+                .enter()
+                .append("path")
+                .attr("class", "link")
+                .attr("d", d => {
+                    return `M${d.source.y},${d.source.x} ${d.target.y},${d.target.x}`;
+                });
 
-        const node = g.selectAll(".node")
-            .data(root.descendants())
-            .enter()
-            .append("g")
-            .attr("class", "node")
-            .attr("transform", d => `translate(${d.x},${d.y})`);
+            const node = svg.selectAll(".node")
+                .data(root.descendants())
+                .enter()
+                .append("g")
+                .attr("class", "node")
+                .attr("transform", d => `translate(${d.y},${d.x})`);
 
-        node.append("circle")
-            .attr("r", 10)
-            .attr("fill", "#ff6666")
-            .attr("stroke", "#ff4d4d")
-            .attr("stroke-width", 3);
+            node.append("circle")
+                .attr("r", 10)
+                .attr("fill", "#ff6666")
+                .attr("stroke", "#ff4d4d")
+                .attr("stroke-width", 3);
 
-        node.append("text")
-            .attr("dy", "-1.5em")
-            .attr("text-anchor", "middle")
-            .text(d => d.data.name)
-            .attr("font-size", "14px")
-            .attr("fill", "#333");
-    }
-</script>
-
+            node.append("text")
+                .attr("dy", 3)
+                .attr("x", d => d.children ? -13 : 13)
+                .style("text-anchor", d => d.children ? "end" : "start")
+                .text(d => d.data.name);
+        }
+    </script>
 </body>
 </html>
