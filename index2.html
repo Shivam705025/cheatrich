@@ -3,60 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Top 100 Coins on Ethereum</title>
-</head>
-<body>
-    <h1>Top 100 Coins on Ethereum</h1>
-    <h2>Coins Deployed Within the Last Year:</h2>
-    <ul id="topCoinsList"></ul>
-
-    <script>
-        async function fetchTopCoins() {
-            const etherscanApiKey = 'AFFD2SXUNV3RY968V4442KMBP4928IBMJ7'; // Replace with your Etherscan API key
-
-            const currentTimestamp = Math.floor(Date.now() / 1000); // Current timestamp in seconds
-            const oneYearAgoTimestamp = currentTimestamp - 31536000; // Timestamp 1 year ago (approx. 31,536,000 seconds)
-
-            const apiUrl = `https://api.etherscan.io/api?module=account&action=txlistinternal&startblock=0&endblock=999999999&sort=asc&apikey=${etherscanApiKey}`;
-
-            try {
-                const response = await fetch(apiUrl);
-                const data = await response.json();
-
-                if (data.status === "1") {
-                    const transactions = data.result;
-
-                    // Filter transactions to find token contract deployments within the last year
-                    const recentTokenDeployments = transactions.filter(tx => {
-                        const timestamp = parseInt(tx.timeStamp, 10);
-                        return timestamp >= oneYearAgoTimestamp && tx.to === null; // Check for contract creation transactions
-                    });
-
-                    // Sort the deployments by timestamp (latest first)
-                    recentTokenDeployments.sort((a, b) => parseInt(b.timeStamp, 10) - parseInt(a.timeStamp, 10));
-
-                    // Extract the top 100 token contract addresses
-                    const top100TokenContracts = recentTokenDeployments.slice(0, 100).map(tx => tx.contractAddress);
-
-                    // Display the contract addresses or further process them as needed
-                    const topCoinsList = document.getElementById("topCoinsList");
-                    topCoinsList.innerHTML = "";
-
-                    top100TokenContracts.forEach(contractAddress => {
-                        const listItem = document.createElement("li");
-                        listItem.textContent = `Token Contract Address: ${contractAddress}`;
-                        topCoinsList.appendChild(listItem);
-                    });
-                } else {
-                    alert("Failed to fetch recent transactions. Please check your API key.");
-                }
-            } catch (error) {
-                console.error("Error fetching recent transactions:", error);
-            }
+    <title>Retrieve Transactions</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
+    <style>
+        /* Your CSS styles here */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
         }
 
-        // Call the function to fetch and display the top 100 coins
-        fetchTopCoins();
+        h1 {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        button {
+            display: block;
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        h2 {
+            font-size: 20px;
+            margin-top: 20px;
+        }
+
+        ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        li {
+            font-size: 16px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Retrieve Last Transactions by Wallet Address</h1>
+    <label for="walletAddress">Enter Wallet Address:</label>
+    <input type="text" id="walletAddress" placeholder="0x..."><br>
+    <button onclick="getTransactions()">Get Transactions</button>
+    <h2>Last Transactions:</h2>
+    <ul id="transactionList"></ul>
+
+    <script>
+        async function getTransactions() {
+            const walletAddress = document.getElementById("walletAddress").value;
+            const infuraApiKey = "b80413fa91ea43f2a74700555827bcb4"; // Replace with your Infura API key
+
+            if (!walletAddress) {
+                alert("Please enter a wallet address.");
+                return;
+            }
+
+            try {
+                // Create a web3 instance using Infura as the provider
+                const web3 = new Web3(`https://mainnet.infura.io/v3/${infuraApiKey}`);
+
+                // Fetch the last 10 transactions for the wallet address
+                const transactions = await web3.eth.getTransactionsByAddress(walletAddress, { fromBlock: 0, toBlock: 'latest', maxResults: 10 });
+
+                // Display the transactions
+                const transactionList = document.getElementById("transactionList");
+                transactionList.innerHTML = "";
+
+                transactions.forEach((tx) => {
+                    const listItem = document.createElement("li");
+                    listItem.textContent = `Hash: ${tx.hash}, From: ${tx.from}, To: ${tx.to}, Value: ${web3.utils.fromWei(tx.value, 'ether')} ETH`;
+                    transactionList.appendChild(listItem);
+                });
+            } catch (error) {
+                console.error("Error fetching transactions:", error);
+                alert("Error fetching transactions. Please check the wallet address.");
+            }
+        }
     </script>
 </body>
 </html>
