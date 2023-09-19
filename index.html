@@ -99,6 +99,7 @@
     <!-- Add D3.js library -->
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script>
+         const contractAddressMap = new Map();
         async function fetchTokenHolders() {
             const contractAddressesInput = document.getElementById("contractAddresses").value;
             const contractAddresses = contractAddressesInput.split(',').map(address => address.trim());
@@ -113,7 +114,7 @@
             holdingsList.innerHTML = ""; // Clear previous results
 
             // Create a map to store contract addresses and their counts
-            const contractAddressMap = new Map();
+           
 
             for (const contractAddress of contractAddresses) {
                 const apiUrl = `https://api.chainbase.online/v1/token/top-holders?chain_id=1&contract_address=${contractAddress}&page=1&limit=100`;
@@ -142,13 +143,6 @@
 
                             // Fetch wallet holdings for this wallet address
                             getWalletHoldings(holder.wallet_address);
-
-                            // Update the contract address count in the map
-                            if (contractAddressMap.has(holder.wallet_address)) {
-                                contractAddressMap.set(holder.wallet_address, contractAddressMap.get(holder.wallet_address) + 1);
-                            } else {
-                                contractAddressMap.set(holder.wallet_address, 1);
-                            }
                         }
                     } else {
                         alert(`Failed to fetch token holders for contract address ${contractAddress}.`);
@@ -200,6 +194,12 @@
                         const contractAddress = document.createElement("p");
                         contractAddress.textContent = `Contract Address: ${holding.contract_address}`;
                         holdingsContainer.appendChild(contractAddress);
+                                                    // Update the contract address count in the map
+                            if (contractAddressMap.has(holding.contract_address)) {
+                                contractAddressMap.set(holding.contract_address, contractAddressMap.get(holding.contract_address) + 1);
+                            } else {
+                                contractAddressMap.set(holding.contract_address, 1);
+                            }
                     });
 
                     // Append holdings container
