@@ -103,7 +103,7 @@
 
                     buyTransactions.slice(0, 100).forEach((tx) => {
                         const listItem = document.createElement("li");
-                        listItem.textContent = `Hash: ${tx.hash}, From: ${tx.from}, To: ${tx.to}, Value: ${web3.utils.fromWei(tx.value, 'ether')} ETH`;
+                        listItem.textContent = `Hash: ${tx.hash}, From: ${tx.from}, To: ${tx.to};
                         transactionList.appendChild(listItem);
                     });
                 } else {
