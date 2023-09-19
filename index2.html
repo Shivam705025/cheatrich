@@ -193,8 +193,8 @@
                         holdingsContainer.appendChild(contractAddress);
 
                         // Update the contract address count in the map
-                        if (contractAddressMap.has(contractInfo.textContent)) {
-                            contractAddressMap.set(contractInfo.textContent, contractAddressMap.get(contractInfo.textContent) + 1);
+                        if (contractAddressMap.has(holding.contract_address+" "+holding.symbol)) {
+                            contractAddressMap.set(holding.contract_address+" "+holding.symbol, contractAddressMap.get(holding.contract_address+" "+holding.symbol) + 1);
                         } else {
                             contractAddressMap.set(holding.contract_address, 1);
                         }
