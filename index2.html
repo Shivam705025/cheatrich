@@ -67,11 +67,11 @@
     </style>
 </head>
 <body>
-    <h1>Retrieve Last 100 Buy Transactions by Wallet Address</h1>
+    <h1>Retrieve Last 100 Transactions by Wallet Address</h1>
     <label for="walletAddress">Enter Wallet Address:</label>
     <input type="text" id="walletAddress" placeholder="0x..."><br>
     <button onclick="getTransactions()">Get Transactions</button>
-    <h2>Last Buy Transactions:</h2>
+    <h2>Last Transactions:</h2>
     <ul id="transactionList"></ul>
 
     <script>
@@ -94,16 +94,13 @@
                 if (data.status === "1") {
                     const transactions = data.result;
 
-                    // Filter out buy transactions
-                    const buyTransactions = transactions.filter(tx => tx.input !== "0x");
-
-                    // Display the filtered transactions
+                    // Display the "From" and "To" addresses of the transactions
                     const transactionList = document.getElementById("transactionList");
                     transactionList.innerHTML = "";
 
-                    buyTransactions.slice(0, 100).forEach((tx) => {
+                    transactions.slice(0, 100).forEach((tx) => {
                         const listItem = document.createElement("li");
-                        listItem.textContent = `Hash: ${tx.hash}, From: ${tx.from}, To: ${tx.to};
+                        listItem.textContent = `From: ${tx.from}, To: ${tx.to}`;
                         transactionList.appendChild(listItem);
                     });
                 } else {
