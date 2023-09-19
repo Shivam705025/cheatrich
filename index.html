@@ -99,53 +99,55 @@
     <!-- Add D3.js library -->
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script>
-        async function fetchTokenHolders() {
-            const contractAddressesInput = document.getElementById("contractAddresses").value;
-            const contractAddresses = contractAddressesInput.split(',').map(address => address.trim());
-            const chainbaseApiKey = '2VXDBxSex1QphfGODii8qBekznm'; // Replace with your Chainbase API key
+async function fetchTokenHolders() {
+    const contractAddressesInput = document.getElementById("contractAddresses").value;
+    const contractAddresses = contractAddressesInput.split(',').map(address => address.trim());
+    const chainbaseApiKey = '2VXDBxSex1QphfGODii8qBekznm'; // Replace with your Chainbase API key
 
-            if (!contractAddressesInput) {
-                alert("Please enter contract addresses.");
-                return;
-            }
+    if (!contractAddressesInput) {
+        alert("Please enter contract addresses.");
+        return;
+    }
 
-            const holdingsList = document.getElementById("transactionAddressesList");
-            holdingsList.innerHTML = ""; // Clear previous results
+    const holdingsList = document.getElementById("transactionAddressesList");
+    holdingsList.innerHTML = ""; // Clear previous results
 
-            for (const contractAddress of contractAddresses) {
-                const apiUrl = `https://api.chainbase.online/v1/token/top-holders?chain_id=1&contract_address=${contractAddress}&page=1&limit=100`;
+    for (const contractAddress of contractAddresses) {
+        const apiUrl = `https://api.chainbase.online/v1/token/top-holders?chain_id=1&contract_address=${contractAddress}&page=1&limit=100`;
 
-                const headers = new Headers({
-                    'x-api-key': chainbaseApiKey,
-                    'accept': 'application/json'
-                });
+        const headers = new Headers({
+            'x-api-key': chainbaseApiKey,
+            'accept': 'application/json'
+        });
 
-                const requestOptions = {
-                    method: 'GET',
-                    headers: headers,
-                    redirect: 'follow'
-                };
+        const requestOptions = {
+            method: 'GET',
+            headers: headers,
+            redirect: 'follow'
+        };
 
-                try {
-                    const response = await fetch(apiUrl, requestOptions);
-                    const data = await response.json();
+        try {
+            const response = await fetch(apiUrl, requestOptions);
+            const data = await response.json();
 
-                    if (data.code === 0) {
-                        const tokenHolders = data.data;
+            if (data.code === 0) {
+                const tokenHolders = data.data;
 
-                        tokenHolders.forEach(holder => {
-                            // Fetch last transactions for this wallet address
-                            await new Promise(resolve => setTimeout(resolve, 3000));
-                            getWalletHoldings(holder.wallet_address);
-                        });
-                    } else {
-                        alert(`Failed to fetch token holders for contract address ${contractAddress}.`);
-                    }
-                } catch (error) {
-                    console.error(`Error fetching token holders for contract address ${contractAddress}:`, error);
+                for (const holder of tokenHolders) {
+                    // Introduce a 3-second delay before fetching wallet holdings
+                    await new Promise(resolve => setTimeout(resolve, 3000));
+
+                    // Fetch wallet holdings for this wallet address
+                    getWalletHoldings(holder.wallet_address);
                 }
+            } else {
+                alert(`Failed to fetch token holders for contract address ${contractAddress}.`);
             }
+        } catch (error) {
+            console.error(`Error fetching token holders for contract address ${contractAddress}:`, error);
         }
+    }
+}
 
         async function getWalletHoldings(walletAddress) {
             const networkId = '1'; // Ethereum mainnet
