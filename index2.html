@@ -4,14 +4,63 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wallet Holdings</title>
+    <style>
+        /* Your CSS styles here */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+        }
+
+        .token-container {
+            max-width: 400px;
+            margin: 20px auto;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            border-radius: 5px;
+        }
+
+        .token-info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .token-logo img {
+            max-width: 100px;
+            max-height: 100px;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            font-size: 20px;
+            margin-top: 10px;
+        }
+
+        p {
+            font-size: 16px;
+            margin: 10px 0;
+        }
+
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+    </style>
 </head>
 <body>
     <h1>Wallet Holdings</h1>
     <label for="walletAddress">Enter Wallet Address:</label>
     <input type="text" id="walletAddress" placeholder="0x..."><br>
     <button onclick="getWalletHoldings()">Get Holdings</button>
-    <h2>Holdings:</h2>
-    <ul id="holdingsList"></ul>
+    <div id="holdingsList"></div>
 
     <script>
         async function getWalletHoldings() {
@@ -43,14 +92,44 @@
 
                 if (data.code === 0) {
                     const holdings = data.data;
-
                     const holdingsList = document.getElementById("holdingsList");
-                    holdingsList.innerHTML = "";
+                    holdingsList.innerHTML = ""; // Clear previous results
 
                     holdings.forEach(holding => {
-                        const listItem = document.createElement("li");
-                        listItem.textContent = `${holding.token_name}: ${holding.balance}`;
-                        holdingsList.appendChild(listItem);
+                        const tokenContainer = document.createElement("div");
+                        tokenContainer.classList.add("token-container");
+
+                        const tokenInfo = document.createElement("div");
+                        tokenInfo.classList.add("token-info");
+
+                        const tokenLogo = document.createElement("div");
+                        tokenLogo.classList.add("token-logo");
+                        const logoImage = document.createElement("img");
+                        logoImage.src = holding.logos[0].uri;
+                        tokenLogo.appendChild(logoImage);
+
+                        const tokenName = document.createElement("h1");
+                        tokenName.textContent = `${holding.name} (${holding.symbol})`;
+
+                        const totalSupply = document.createElement("h2");
+                        totalSupply.textContent = `Total Supply: ${holding.total_supply} ${holding.symbol}`;
+
+                        const currentPrice = document.createElement("p");
+                        currentPrice.textContent = `Current USD Price: $${holding.current_usd_price}`;
+
+                        const homepageLink = document.createElement("a");
+                        homepageLink.href = holding.urls[0].url;
+                        homepageLink.target = "_blank";
+                        homepageLink.textContent = "Visit Homepage";
+
+                        tokenInfo.appendChild(tokenLogo);
+                        tokenInfo.appendChild(tokenName);
+                        tokenInfo.appendChild(totalSupply);
+                        tokenInfo.appendChild(currentPrice);
+                        tokenInfo.appendChild(homepageLink);
+
+                        tokenContainer.appendChild(tokenInfo);
+                        holdingsList.appendChild(tokenContainer);
                     });
                 } else {
                     alert(`Error fetching holdings for wallet address ${walletAddress}.`);
@@ -63,3 +142,4 @@
     </script>
 </body>
 </html>
+
