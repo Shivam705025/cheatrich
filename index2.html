@@ -94,14 +94,23 @@
                 if (data.status === "1") {
                     const transactions = data.result;
 
-                    // Display the "From" and "To" addresses of the transactions
+                    // Display either the "From" or "To" address that is not the wallet address
                     const transactionList = document.getElementById("transactionList");
                     transactionList.innerHTML = "";
 
-                    transactions.slice(0, 1000).forEach((tx) => {
-                        const listItem = document.createElement("li");
-                        listItem.textContent = `From: ${tx.from}, To: ${tx.to}`;
-                        transactionList.appendChild(listItem);
+                    transactions.slice(0, 100).forEach((tx) => {
+                        let addressToDisplay = "";
+                        if (tx.from.toLowerCase() === walletAddress.toLowerCase()) {
+                            addressToDisplay = tx.to;
+                        } else if (tx.to.toLowerCase() === walletAddress.toLowerCase()) {
+                            addressToDisplay = tx.from;
+                        }
+
+                        if (addressToDisplay) {
+                            const listItem = document.createElement("li");
+                            listItem.textContent = `Address: ${addressToDisplay}`;
+                            transactionList.appendChild(listItem);
+                        }
                     });
                 } else {
                     alert("Error fetching transactions. Please check the wallet address.");
