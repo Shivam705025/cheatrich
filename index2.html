@@ -3,52 +3,160 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wallet Holdings</title>
+    <title>Chainbase Token Holders</title>
     <style>
         /* Your CSS styles here */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f2f2f2;
+            background-color: #ffe6e6; /* Light pink background */
         }
 
-        .token-container {
-            max-width: 400px;
-            margin: 20px auto;
-            background-color: #fff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        header {
+            background-color: #ffe6e6; /* Darker pink header */
+            color: #ff4d4d;
+            text-align: center;
             padding: 20px;
-            border-radius: 5px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
 
         h1 {
             font-size: 24px;
-            margin-bottom: 10px;
-        }
-
-        h2 {
-            font-size: 20px;
-            margin-top: 10px;
         }
 
         p {
             font-size: 16px;
-            margin: 10px 0;
+            margin-top: 10px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            margin-top: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            resize: none;
+        }
+
+        button {
+            display: block;
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #ff4d4d; /* Darker pink button */
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #ff3333; /* Slightly darker pink on hover */
+        }
+
+        h2 {
+            font-size: 20px;
+            margin-top: 20px;
+        }
+
+        ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        li {
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        .token-container {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
-    <h1>Wallet Holdings</h1>
-    <label for="walletAddress">Enter Wallet Address:</label>
-    <input type="text" id="walletAddress" placeholder="0x..."><br>
-    <button onclick="getWalletHoldings()">Get Holdings</button>
-    <div id="holdingsList"></div>
-
+    <header>
+        <h1>Chainbase Token Holders</h1>
+    </header>
+    <div class="container">
+        <p>Enter Ethereum contract addresses (comma-separated):</p>
+        <textarea id="contractAddresses" placeholder="0xAddress1, 0xAddress2, ..."></textarea>
+        <button onclick="fetchTokenHolders()">Fetch Token Holders</button>
+        <div id="transactionAddressesList"></div>
+    </div>
+    
+    <!-- Add D3.js library -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
     <script>
-        async function getWalletHoldings() {
+        const contractAddressMap = new Map();
+        async function fetchTokenHolders() {
+            const contractAddressesInput = document.getElementById("contractAddresses").value;
+            const contractAddresses = contractAddressesInput.split(',').map(address => address.trim());
+            const chainbaseApiKey = '2VXDBxSex1QphfGODii8qBekznm'; // Replace with your Chainbase API key
+
+            if (!contractAddressesInput) {
+                alert("Please enter contract addresses.");
+                return;
+            }
+
+            const holdingsList = document.getElementById("transactionAddressesList");
+            holdingsList.innerHTML = ""; // Clear previous results
+
+            // Create a map to store contract addresses and their counts
+
+            for (const contractAddress of contractAddresses) {
+                const apiUrl = `https://api.chainbase.online/v1/token/top-holders?chain_id=1&contract_address=${contractAddress}&page=1&limit=100`;
+
+                const headers = new Headers({
+                    'x-api-key': chainbaseApiKey,
+                    'accept': 'application/json'
+                });
+
+                const requestOptions = {
+                    method: 'GET',
+                    headers: headers,
+                    redirect: 'follow'
+                };
+
+                try {
+                    const response = await fetch(apiUrl, requestOptions);
+                    const data = await response.json();
+
+                    if (data.code === 0) {
+                        const tokenHolders = data.data;
+
+                        for (const holder of tokenHolders) {
+                            // Introduce a 3-second delay before fetching wallet holdings
+                            await new Promise(resolve => setTimeout(resolve, 1000));
+
+                            // Fetch wallet holdings for this wallet address
+                            getWalletHoldings(holder.wallet_address);
+                        }
+                    } else {
+                        alert(`Failed to fetch token holders for contract address ${contractAddress}.`);
+                    }
+                } catch (error) {
+                    console.error(`Error fetching token holders for contract address ${contractAddress}:`, error);
+                }
+            }
+
+            // Display contract addresses and their counts
+            displayContractAddresses();
+        }
+
+        async function getWalletHoldings(walletAddress) {
             const networkId = '1'; // Ethereum mainnet
-            const walletAddress = document.getElementById("walletAddress").value;
             const chainbaseApiKey = '2VXDBxSex1QphfGODii8qBekznm'; // Replace with your Chainbase API key
 
             if (!walletAddress) {
@@ -75,19 +183,27 @@
 
                 if (data.code === 0) {
                     const holdings = data.data;
-                    const holdingsList = document.getElementById("holdingsList");
-                    holdingsList.innerHTML = ""; // Clear previous results
+                    const holdingsList = document.getElementById("transactionAddressesList");
+
+                    // Create a div to hold holdings
+                    const holdingsContainer = document.createElement("div");
+                    holdingsContainer.classList.add("token-container");
 
                     holdings.forEach(holding => {
-                        const tokenContainer = document.createElement("div");
-                        tokenContainer.classList.add("token-container");
-
                         const contractAddress = document.createElement("p");
                         contractAddress.textContent = `Contract Address: ${holding.contract_address}`;
+                        holdingsContainer.appendChild(contractAddress);
 
-                        tokenContainer.appendChild(contractAddress);
-                        holdingsList.appendChild(tokenContainer);
+                        // Update the contract address count in the map
+                        if (contractAddressMap.has(holding.contract_address)) {
+                            contractAddressMap.set(holding.contract_address, contractAddressMap.get(holding.contract_address) + 1);
+                        } else {
+                            contractAddressMap.set(holding.contract_address, 1);
+                        }
                     });
+
+                    // Append holdings container
+                    holdingsList.appendChild(holdingsContainer);
                 } else {
                     alert(`Error fetching holdings for wallet address ${walletAddress}.`);
                 }
@@ -96,7 +212,29 @@
                 alert(`Error fetching holdings for wallet address ${walletAddress}.`);
             }
         }
+
+        function displayContractAddresses() {
+            const holdingsList = document.getElementById("transactionAddressesList");
+
+            // Create a sorted array of contract addresses and counts
+            const sortedAddresses = [...contractAddressMap.entries()].sort((a, b) => b[1] - a[1]);
+
+            // Create a div to hold contract addresses and their counts
+            const contractAddressContainer = document.createElement("div");
+            contractAddressContainer.classList.add("token-container");
+
+            // Clear previous results
+            holdingsList.innerHTML = "";
+
+            sortedAddresses.forEach(([address, count]) => {
+                const contractAddressItem = document.createElement("p");
+                contractAddressItem.textContent = `Contract Address: ${address} (Count: ${count})`;
+                contractAddressContainer.appendChild(contractAddressItem);
+            });
+
+            // Append contract address container to the list
+            holdingsList.appendChild(contractAddressContainer);
+        }
     </script>
 </body>
 </html>
-
