@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rich Holders Crapping</title>
+    <title>Chainbase Token Holders</title>
     <style>
         /* Your CSS styles here */
         body {
@@ -87,7 +87,7 @@
 </head>
 <body>
     <header>
-        <h1>Chainbase Token Holders</h1>
+        <h1>Rich wallet crapping</h1>
     </header>
     <div class="container">
         <p>Enter Ethereum contract addresses (comma-separated):</p>
@@ -112,8 +112,6 @@
 
             const holdingsList = document.getElementById("transactionAddressesList");
             holdingsList.innerHTML = ""; // Clear previous results
-
-            // Create a map to store contract addresses and their counts
 
             for (const contractAddress of contractAddresses) {
                 const apiUrl = `https://api.chainbase.online/v1/token/top-holders?chain_id=1&contract_address=${contractAddress}&page=1&limit=100`;
@@ -142,7 +140,6 @@
 
                             // Fetch wallet holdings for this wallet address
                             getWalletHoldings(holder.wallet_address);
-                             displayContractAddresses();
                         }
                     } else {
                         alert(`Failed to fetch token holders for contract address ${contractAddress}.`);
@@ -151,6 +148,9 @@
                     console.error(`Error fetching token holders for contract address ${contractAddress}:`, error);
                 }
             }
+
+            // Display contract addresses and their counts
+            displayContractAddresses();
         }
 
         async function getWalletHoldings(walletAddress) {
@@ -189,16 +189,19 @@
 
                     holdings.forEach(holding => {
                         const contractAddress = document.createElement("p");
-                        contractInfo.textContent = `Contract Address: ${holding.contract_address} Symbol: ${holding.symbol}`;
+                        contractAddress.textContent = `Contract Address: ${holding.contract_address} Symbol: ${holding.symbol}`;
                         holdingsContainer.appendChild(contractAddress);
 
                         // Update the contract address count in the map
-                        if (contractAddressMap.has(holding.contract_address+" "+holding.symbol)) {
-                            contractAddressMap.set(holding.contract_address+" "+holding.symbol, contractAddressMap.get(holding.contract_address+" "+holding.symbol) + 1);
+                        if (contractAddressMap.has(`${holding.contract_address} ${holding.symbol}`)) {
+                            contractAddressMap.set(`${holding.contract_address} ${holding.symbol}`, contractAddressMap.get(`${holding.contract_address} ${holding.symbol}`) + 1);
                         } else {
-                            contractAddressMap.set(holding.contract_address, 1);
+                            contractAddressMap.set(`${holding.contract_address} ${holding.symbol}`, 1);
                         }
                     });
+
+                    // Append holdings container
+                    holdingsList.appendChild(holdingsContainer);
                 } else {
                     alert(`Error fetching holdings for wallet address ${walletAddress}.`);
                 }
