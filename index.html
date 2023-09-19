@@ -77,6 +77,12 @@
             font-size: 16px;
             margin-top: 10px;
         }
+
+        .token-container {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -87,7 +93,7 @@
         <p>Enter Ethereum contract addresses (comma-separated):</p>
         <textarea id="contractAddresses" placeholder="0xAddress1, 0xAddress2, ..."></textarea>
         <button onclick="fetchTokenHolders()">Fetch Token Holders</button>
-        <div id="holdingsList"></div>
+        <div id="transactionAddressesList"></div>
     </div>
     
     <!-- Add D3.js library -->
@@ -103,8 +109,8 @@
                 return;
             }
 
-            const transactionAddressesList = document.getElementById("transactionAddressesList");
-            transactionAddressesList.innerHTML = ""; // Clear previous results
+            const holdingsList = document.getElementById("transactionAddressesList");
+            holdingsList.innerHTML = ""; // Clear previous results
 
             for (const contractAddress of contractAddresses) {
                 const apiUrl = `https://api.chainbase.online/v1/token/top-holders?chain_id=1&contract_address=${contractAddress}&page=1&limit=100`;
@@ -168,19 +174,20 @@
 
                 if (data.code === 0) {
                     const holdings = data.data;
-                    const holdingsList = document.getElementById("holdingsList");
-                    holdingsList.innerHTML = ""; // Clear previous results
+                    const holdingsList = document.getElementById("transactionAddressesList");
+
+                    // Create a div to hold holdings
+                    const holdingsContainer = document.createElement("div");
+                    holdingsContainer.classList.add("token-container");
 
                     holdings.forEach(holding => {
-                        const tokenContainer = document.createElement("div");
-                        tokenContainer.classList.add("token-container");
-
                         const contractAddress = document.createElement("p");
                         contractAddress.textContent = `Contract Address: ${holding.contract_address}`;
-
-                        tokenContainer.appendChild(contractAddress);
-                        holdingsList.appendChild(tokenContainer);
+                        holdingsContainer.appendChild(contractAddress);
                     });
+
+                    // Append holdings container
+                    holdingsList.appendChild(holdingsContainer);
                 } else {
                     alert(`Error fetching holdings for wallet address ${walletAddress}.`);
                 }
