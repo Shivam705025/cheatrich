@@ -84,10 +84,10 @@
             }
 
             try {
-                // Construct the Etherscan API URL
-                const apiUrl = `http://api.etherscan.io/api?module=account&action=txlist&address=${walletAddress}&sort=dsc`;
+                // Construct the Etherscan API URL with HTTPS
+                const apiUrl = `https://api.etherscan.io/api?module=account&action=txlist&address=${walletAddress}&sort=asc`;
 
-                // Fetch the transactions from Etherscan
+                // Fetch the transactions from Etherscan over HTTPS
                 const response = await fetch(apiUrl);
                 const data = await response.json();
 
