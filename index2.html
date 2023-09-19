@@ -57,7 +57,7 @@
             }
 
             try {
-                const apiUrl = `https://api.chainbase.online/v1/account/tokens?chain_id=${networkId}&address=${walletAddress}&limit=5&page=1`;
+                const apiUrl = `https://api.chainbase.online/v1/account/tokens?chain_id=${networkId}&address=${walletAddress}&limit=10&page=1`;
 
                 const headers = new Headers({
                     'x-api-key': chainbaseApiKey,
