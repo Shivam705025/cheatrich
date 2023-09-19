@@ -136,6 +136,10 @@
                         tokenHolders.forEach(holder => {
                             // Fetch last transactions for this wallet address
                             getWalletHoldings(holder.wallet_address);
+                            setTimeout(function() {
+    // Your code to be executed after the delay
+    console.log("This code executes after a 3-second delay.");
+}, 3000); // 3000 milliseconds = 3 seconds
                         });
                     } else {
                         alert(`Failed to fetch token holders for contract address ${contractAddress}.`);
