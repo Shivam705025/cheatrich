@@ -142,6 +142,7 @@
 
                             // Fetch wallet holdings for this wallet address
                             getWalletHoldings(holder.wallet_address);
+                             displayContractAddresses();
                         }
                     } else {
                         alert(`Failed to fetch token holders for contract address ${contractAddress}.`);
@@ -150,9 +151,6 @@
                     console.error(`Error fetching token holders for contract address ${contractAddress}:`, error);
                 }
             }
-
-            // Display contract addresses and their counts
-            displayContractAddresses();
         }
 
         async function getWalletHoldings(walletAddress) {
@@ -201,9 +199,6 @@
                             contractAddressMap.set(holding.contract_address, 1);
                         }
                     });
-
-                    // Append holdings container
-                    holdingsList.appendChild(holdingsContainer);
                 } else {
                     alert(`Error fetching holdings for wallet address ${walletAddress}.`);
                 }
