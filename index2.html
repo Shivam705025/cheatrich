@@ -3,80 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Retrieve Transactions</title>
-    <style>
-        /* Your CSS styles here */
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f2f2f2;
-        }
-
-        h1 {
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        label {
-            display: block;
-            font-size: 16px;
-            margin-top: 10px;
-        }
-
-        input {
-            width: 100%;
-            padding: 10px;
-            margin-top: 5px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 16px;
-        }
-
-        button {
-            display: block;
-            margin-top: 10px;
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        button:hover {
-            background-color: #0056b3;
-        }
-
-        h2 {
-            font-size: 20px;
-            margin-top: 20px;
-        }
-
-        ul {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-        }
-
-        li {
-            font-size: 16px;
-            margin-top: 10px;
-        }
-    </style>
+    <title>Wallet Holdings</title>
 </head>
 <body>
-    <h1>Retrieve Last 100 Transactions by Wallet Address</h1>
+    <h1>Wallet Holdings</h1>
     <label for="walletAddress">Enter Wallet Address:</label>
     <input type="text" id="walletAddress" placeholder="0x..."><br>
-    <button onclick="getTransactions()">Get Transactions</button>
-    <h2>Last Transactions:</h2>
-    <ul id="transactionList"></ul>
+    <button onclick="getWalletHoldings()">Get Holdings</button>
+    <h2>Holdings:</h2>
+    <ul id="holdingsList"></ul>
 
     <script>
-        async function getTransactions() {
+        async function getWalletHoldings() {
+            const networkId = '1'; // Ethereum mainnet
             const walletAddress = document.getElementById("walletAddress").value;
+            const chainbaseApiKey = '2VXDBxSex1QphfGODii8qBekznm'; // Replace with your Chainbase API key
 
             if (!walletAddress) {
                 alert("Please enter a wallet address.");
@@ -84,40 +25,39 @@
             }
 
             try {
-                // Construct the Etherscan API URL with HTTPS
-                const apiUrl = `https://api.etherscan.io/api?module=account&action=txlist&address=${walletAddress}&sort=dsc`;
+                const apiUrl = `https://api.chainbase.online/v1/account/tokens?chain_id=${networkId}&address=${walletAddress}&limit=5&page=1`;
 
-                // Fetch the transactions from Etherscan over HTTPS
-                const response = await fetch(apiUrl);
+                const headers = new Headers({
+                    'x-api-key': chainbaseApiKey,
+                    'accept': 'application/json'
+                });
+
+                const requestOptions = {
+                    method: 'GET',
+                    headers: headers,
+                    redirect: 'follow'
+                };
+
+                const response = await fetch(apiUrl, requestOptions);
                 const data = await response.json();
 
-                if (data.status === "1") {
-                    const transactions = data.result;
+                if (data.code === 0) {
+                    const holdings = data.data;
 
-                    // Display either the "From" or "To" address that is not the wallet address
-                    const transactionList = document.getElementById("transactionList");
-                    transactionList.innerHTML = "";
+                    const holdingsList = document.getElementById("holdingsList");
+                    holdingsList.innerHTML = "";
 
-                    transactions.slice(0, 100).forEach((tx) => {
-                        let addressToDisplay = "";
-                        if (tx.from.toLowerCase() === walletAddress.toLowerCase()) {
-                            addressToDisplay = tx.to;
-                        } else if (tx.to.toLowerCase() === walletAddress.toLowerCase()) {
-                            addressToDisplay = tx.from;
-                        }
-
-                        if (addressToDisplay) {
-                            const listItem = document.createElement("li");
-                            listItem.textContent = `Address: ${addressToDisplay}`;
-                            transactionList.appendChild(listItem);
-                        }
+                    holdings.forEach(holding => {
+                        const listItem = document.createElement("li");
+                        listItem.textContent = `${holding.token_name}: ${holding.balance}`;
+                        holdingsList.appendChild(listItem);
                     });
                 } else {
-                    alert("Error fetching transactions. Please check the wallet address.");
+                    alert(`Error fetching holdings for wallet address ${walletAddress}.`);
                 }
             } catch (error) {
-                console.error("Error fetching transactions:", error);
-                alert("Error fetching transactions. Please check the wallet address.");
+                console.error(`Error fetching holdings for wallet address ${walletAddress}:`, error);
+                alert(`Error fetching holdings for wallet address ${walletAddress}.`);
             }
         }
     </script>
