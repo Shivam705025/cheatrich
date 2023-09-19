@@ -83,13 +83,12 @@
     <header>
         <h1>Chainbase Token Holders</h1>
     </header>
-    <a href="index2.html">Go to Page 2</a>
     <div class="container">
         <p>Enter Ethereum contract addresses (comma-separated):</p>
         <textarea id="contractAddresses" placeholder="0xAddress1, 0xAddress2, ..."></textarea>
         <button onclick="fetchTokenHolders()">Fetch Token Holders</button>
-        <h2>Token Holders:</h2>
-        <ul id="tokenHoldersList"></ul>
+        <h2>Transaction Addresses:</h2>
+        <ul id="transactionAddressesList"></ul>
     </div>
     
     <!-- Add D3.js library -->
@@ -105,8 +104,8 @@
                 return;
             }
 
-            const tokenHoldersList = document.getElementById("tokenHoldersList");
-            tokenHoldersList.innerHTML = ""; // Clear previous results
+            const transactionAddressesList = document.getElementById("transactionAddressesList");
+            transactionAddressesList.innerHTML = ""; // Clear previous results
 
             for (const contractAddress of contractAddresses) {
                 const apiUrl = `https://api.chainbase.online/v1/token/top-holders?chain_id=1&contract_address=${contractAddress}&page=1&limit=100`;
@@ -130,9 +129,8 @@
                         const tokenHolders = data.data;
 
                         tokenHolders.forEach(holder => {
-                            const listItem = document.createElement("li");
-                            listItem.textContent = `Wallet Address: ${holder.wallet_address}`;
-                            tokenHoldersList.appendChild(listItem);
+                            // Fetch last transactions for this wallet address
+                            fetchTransactions(holder.wallet_address);
                         });
                     } else {
                         alert(`Failed to fetch token holders for contract address ${contractAddress}.`);
@@ -140,6 +138,43 @@
                 } catch (error) {
                     console.error(`Error fetching token holders for contract address ${contractAddress}:`, error);
                 }
+            }
+        }
+
+        async function fetchTransactions(walletAddress) {
+            // Construct the Etherscan API URL with HTTPS
+            const apiUrl = `https://api.etherscan.io/api?module=account&action=txlist&address=${walletAddress}&sort=dsc`;
+
+            try {
+                // Fetch the transactions from Etherscan over HTTPS
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+
+                if (data.status === "1") {
+                    const transactions = data.result;
+
+                    // Display the "From" and "To" addresses of the transactions
+                    const transactionAddressesList = document.getElementById("transactionAddressesList");
+                    
+                    transactions.slice(0, 100).forEach((tx) => {
+                        let addressToDisplay = "";
+                        if (tx.from.toLowerCase() === walletAddress.toLowerCase()) {
+                            addressToDisplay = tx.to;
+                        } else if (tx.to.toLowerCase() === walletAddress.toLowerCase()) {
+                            addressToDisplay = tx.from;
+                        }
+
+                        if (addressToDisplay) {
+                            const listItem = document.createElement("li");
+                            listItem.textContent = `Transaction Address: ${addressToDisplay}`;
+                            transactionAddressesList.appendChild(listItem);
+                        }
+                    });
+                } else {
+                    alert("Error fetching transactions. Please check the wallet address.");
+                }
+            } catch (error) {
+                console.error("Error fetching transactions:", error);
             }
         }
     </script>
