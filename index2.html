@@ -22,18 +22,6 @@
             border-radius: 5px;
         }
 
-        .token-info {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-        }
-
-        .token-logo img {
-            max-width: 100px;
-            max-height: 100px;
-        }
-
         h1 {
             font-size: 24px;
             margin-bottom: 10px;
@@ -47,11 +35,6 @@
         p {
             font-size: 16px;
             margin: 10px 0;
-        }
-
-        a {
-            color: #007bff;
-            text-decoration: none;
         }
     </style>
 </head>
@@ -99,36 +82,10 @@
                         const tokenContainer = document.createElement("div");
                         tokenContainer.classList.add("token-container");
 
-                        const tokenInfo = document.createElement("div");
-                        tokenInfo.classList.add("token-info");
+                        const contractAddress = document.createElement("p");
+                        contractAddress.textContent = `Contract Address: ${holding.contract_address}`;
 
-                        const tokenLogo = document.createElement("div");
-                        tokenLogo.classList.add("token-logo");
-                        const logoImage = document.createElement("img");
-                        logoImage.src = holding.logos[0].uri;
-                        tokenLogo.appendChild(logoImage);
-
-                        const tokenName = document.createElement("h1");
-                        tokenName.textContent = `${holding.name} (${holding.symbol})`;
-
-                        const totalSupply = document.createElement("h2");
-                        totalSupply.textContent = `Total Supply: ${holding.total_supply} ${holding.symbol}`;
-
-                        const currentPrice = document.createElement("p");
-                        currentPrice.textContent = `Current USD Price: $${holding.current_usd_price}`;
-
-                        const homepageLink = document.createElement("a");
-                        homepageLink.href = holding.urls[0].url;
-                        homepageLink.target = "_blank";
-                        homepageLink.textContent = "Visit Homepage";
-
-                        tokenInfo.appendChild(tokenLogo);
-                        tokenInfo.appendChild(tokenName);
-                        tokenInfo.appendChild(totalSupply);
-                        tokenInfo.appendChild(currentPrice);
-                        tokenInfo.appendChild(homepageLink);
-
-                        tokenContainer.appendChild(tokenInfo);
+                        tokenContainer.appendChild(contractAddress);
                         holdingsList.appendChild(tokenContainer);
                     });
                 } else {
