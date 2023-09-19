@@ -99,55 +99,68 @@
     <!-- Add D3.js library -->
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script>
-async function fetchTokenHolders() {
-    const contractAddressesInput = document.getElementById("contractAddresses").value;
-    const contractAddresses = contractAddressesInput.split(',').map(address => address.trim());
-    const chainbaseApiKey = '2VXDBxSex1QphfGODii8qBekznm'; // Replace with your Chainbase API key
+        async function fetchTokenHolders() {
+            const contractAddressesInput = document.getElementById("contractAddresses").value;
+            const contractAddresses = contractAddressesInput.split(',').map(address => address.trim());
+            const chainbaseApiKey = '2VXDBxSex1QphfGODii8qBekznm'; // Replace with your Chainbase API key
 
-    if (!contractAddressesInput) {
-        alert("Please enter contract addresses.");
-        return;
-    }
-
-    const holdingsList = document.getElementById("transactionAddressesList");
-    holdingsList.innerHTML = ""; // Clear previous results
-
-    for (const contractAddress of contractAddresses) {
-        const apiUrl = `https://api.chainbase.online/v1/token/top-holders?chain_id=1&contract_address=${contractAddress}&page=1&limit=100`;
-
-        const headers = new Headers({
-            'x-api-key': chainbaseApiKey,
-            'accept': 'application/json'
-        });
-
-        const requestOptions = {
-            method: 'GET',
-            headers: headers,
-            redirect: 'follow'
-        };
-
-        try {
-            const response = await fetch(apiUrl, requestOptions);
-            const data = await response.json();
-
-            if (data.code === 0) {
-                const tokenHolders = data.data;
-
-                for (const holder of tokenHolders) {
-                    // Introduce a 3-second delay before fetching wallet holdings
-                    await new Promise(resolve => setTimeout(resolve, 3000));
-
-                    // Fetch wallet holdings for this wallet address
-                    getWalletHoldings(holder.wallet_address);
-                }
-            } else {
-                alert(`Failed to fetch token holders for contract address ${contractAddress}.`);
+            if (!contractAddressesInput) {
+                alert("Please enter contract addresses.");
+                return;
             }
-        } catch (error) {
-            console.error(`Error fetching token holders for contract address ${contractAddress}:`, error);
+
+            const holdingsList = document.getElementById("transactionAddressesList");
+            holdingsList.innerHTML = ""; // Clear previous results
+
+            // Create a map to store contract addresses and their counts
+            const contractAddressMap = new Map();
+
+            for (const contractAddress of contractAddresses) {
+                const apiUrl = `https://api.chainbase.online/v1/token/top-holders?chain_id=1&contract_address=${contractAddress}&page=1&limit=100`;
+
+                const headers = new Headers({
+                    'x-api-key': chainbaseApiKey,
+                    'accept': 'application/json'
+                });
+
+                const requestOptions = {
+                    method: 'GET',
+                    headers: headers,
+                    redirect: 'follow'
+                };
+
+                try {
+                    const response = await fetch(apiUrl, requestOptions);
+                    const data = await response.json();
+
+                    if (data.code === 0) {
+                        const tokenHolders = data.data;
+
+                        for (const holder of tokenHolders) {
+                            // Introduce a 3-second delay before fetching wallet holdings
+                            await new Promise(resolve => setTimeout(resolve, 1000));
+
+                            // Fetch wallet holdings for this wallet address
+                            getWalletHoldings(holder.wallet_address);
+
+                            // Update the contract address count in the map
+                            if (contractAddressMap.has(holder.wallet_address)) {
+                                contractAddressMap.set(holder.wallet_address, contractAddressMap.get(holder.wallet_address) + 1);
+                            } else {
+                                contractAddressMap.set(holder.wallet_address, 1);
+                            }
+                        }
+                    } else {
+                        alert(`Failed to fetch token holders for contract address ${contractAddress}.`);
+                    }
+                } catch (error) {
+                    console.error(`Error fetching token holders for contract address ${contractAddress}:`, error);
+                }
+            }
+
+            // Display contract addresses and their counts
+            displayContractAddresses(contractAddressMap);
         }
-    }
-}
 
         async function getWalletHoldings(walletAddress) {
             const networkId = '1'; // Ethereum mainnet
@@ -198,6 +211,23 @@ async function fetchTokenHolders() {
                 console.error(`Error fetching holdings for wallet address ${walletAddress}:`, error);
                 alert(`Error fetching holdings for wallet address ${walletAddress}.`);
             }
+        }
+
+        function displayContractAddresses(contractAddressMap) {
+            const holdingsList = document.getElementById("transactionAddressesList");
+
+            // Create a div to hold contract addresses and their counts
+            const contractAddressContainer = document.createElement("div");
+            contractAddressContainer.classList.add("token-container");
+
+            for (const [address, count] of contractAddressMap.entries()) {
+                const contractAddressItem = document.createElement("p");
+                contractAddressItem.textContent = `Contract Address: ${address} (Count: ${count})`;
+                contractAddressContainer.appendChild(contractAddressItem);
+            }
+
+            // Append contract address container to the list
+            holdingsList.appendChild(contractAddressContainer);
         }
     </script>
 </body>
