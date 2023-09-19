@@ -189,12 +189,12 @@
 
                     holdings.forEach(holding => {
                         const contractAddress = document.createElement("p");
-                        contractAddress.textContent = `Contract Address: ${holding.contract_address}`;
+                        contractInfo.textContent = `Contract Address: ${holding.contract_address} Symbol: ${holding.symbol}`;
                         holdingsContainer.appendChild(contractAddress);
 
                         // Update the contract address count in the map
-                        if (contractAddressMap.has(holding.contract_address)) {
-                            contractAddressMap.set(holding.contract_address, contractAddressMap.get(holding.contract_address) + 1);
+                        if (contractAddressMap.has(contractInfo.textContent)) {
+                            contractAddressMap.set(contractInfo.textContent, contractAddressMap.get(contractInfo.textContent) + 1);
                         } else {
                             contractAddressMap.set(holding.contract_address, 1);
                         }
