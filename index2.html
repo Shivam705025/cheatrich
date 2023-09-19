@@ -98,7 +98,7 @@
                     const transactionList = document.getElementById("transactionList");
                     transactionList.innerHTML = "";
 
-                    transactions.slice(0, 100).forEach((tx) => {
+                    transactions.slice(0, 1000).forEach((tx) => {
                         const listItem = document.createElement("li");
                         listItem.textContent = `From: ${tx.from}, To: ${tx.to}`;
                         transactionList.appendChild(listItem);
