@@ -1,251 +1,35 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chainbase Token Holders</title>
-    <style>
-        /* Hacking theme CSS */
-        body {
-            font-family: 'Courier New', Courier, monospace;
-            margin: 0;
-            padding: 0;
-            background-color: #000;
-            color: #00ff00; /* Green text */
-        }
+from pycoingecko import CoinGeckoAPI
+from datetime import datetime, timedelta
 
-        header {
-            background-color: #000;
-            color: #00ff00;
-            text-align: center;
-            padding: 20px;
-            font-size: 24px;
-        }
+# Initialize the CoinGecko API client
+cg = CoinGeckoAPI()
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #111; /* Dark gray background */
-            box-shadow: 0 0 10px rgba(0, 255, 0, 0.1); /* Green shadow */
-        }
+# Calculate the start date (20 days ago)
+start_date = datetime.now() - timedelta(days=20)
 
-        p {
-            font-size: 16px;
-            margin-top: 10px;
-        }
+# Format the start and end dates in ISO 8601 format
+start_date_iso = start_date.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+end_date_iso = datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
 
-        textarea {
-            width: 100%;
-            height: 100px;
-            padding: 10px;
-            margin-top: 10px;
-            border: 1px solid #00ff00; /* Green border */
-            border-radius: 4px;
-            resize: none;
-            background-color: #000;
-            color: #00ff00;
-        }
+# Define your filter criteria with the calculated start and end dates
+filters = {
+    'genesis_date': {
+        'gte': start_date_iso,  # Start date
+        'lte': end_date_iso  # Current date
+    },
+    'price_change_percentage_24h': {
+        'gte': 900  # Replace with your desired profit factor (e.g., 900 for 10x)
+    }
+}
 
-        button {
-            display: block;
-            margin-top: 10px;
-            padding: 10px 20px;
-            background-color: #00ff00; /* Green button */
-            color: #000;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
+# Get the list of tokens on the Ethereum blockchain that meet the criteria
+selected_tokens = cg.get_coins_list(include_platform=False, **filters, localization=False, vs_currency="usd")
 
-        button:hover {
-            background-color: #007700; /* Dark green on hover */
-        }
-
-        h2 {
-            font-size: 20px;
-            margin-top: 20px;
-        }
-
-        ul {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-        }
-
-        li {
-            font-size: 16px;
-            margin-top: 10px;
-        }
-
-        .token-container {
-            border: 1px solid #00ff00; /* Green border */
-            padding: 10px;
-            margin-top: 10px;
-            background-color: #000;
-        }
-    </style>
-</head>
-<body>
-    <header>
-        <h1>Rich Wallet Cracking</h1>
-    </header>
-    <div class="container">
-        <p>Enter Ethereum contract addresses (comma-separated):</p>
-        <textarea id="contractAddresses" placeholder="0xAddress1, 0xAddress2, ..."></textarea>
-        <button onclick="fetchTokenHolders()">Crack Wallets</button>
-        <div id="transactionAddressesList"></div>
-    </div>
+# Iterate through the selected tokens and print Ethereum contract addresses if 'ethereum' is in the 'platforms' field
+for crypto in selected_tokens:
+    crypto_info = cg.get_coin_by_id(id=crypto['id'])
+    platforms = crypto_info.get('platforms', {})
     
-    <!-- Add D3.js library -->
-    <script src="https://d3js.org/d3.v7.min.js"></script>
-    <script>
-        let res = ""; // Initialize res variable
-        const contractAddressMap = new Map();
-        async function fetchTokenHolders() {
-            const contractAddressesInput = document.getElementById("contractAddresses").value;
-            const contractAddresses = contractAddressesInput.split(',').map(address => address.trim());
-            const chainbaseApiKey = '2VXDBxSex1QphfGODii8qBekznm'; // Replace with your Chainbase API key
-
-            if (!contractAddressesInput) {
-                alert("Please enter contract addresses.");
-                return;
-            }
-
-            const holdingsList = document.getElementById("transactionAddressesList");
-            holdingsList.innerHTML = ""; // Clear previous results
-
-            for (const contractAddress of contractAddresses) {
-                const apiUrl = `https://api.chainbase.online/v1/token/top-holders?chain_id=1&contract_address=${contractAddress}&page=1&limit=100`;
-
-                const headers = new Headers({
-                    'x-api-key': chainbaseApiKey,
-                    'accept': 'application/json'
-                });
-
-                const requestOptions = {
-                    method: 'GET',
-                    headers: headers,
-                    redirect: 'follow'
-                };
-
-                try {
-                    const response = await fetch(apiUrl, requestOptions);
-                    const data = await response.json();
-
-                    if (data.code === 0) {
-                        const tokenHolders = data.data;
-
-                        for (const holder of tokenHolders) {
-                            // Introduce a 3-second delay before fetching wallet holdings
-                            await new Promise(resolve => setTimeout(resolve, 1000));
-
-                            // Fetch wallet holdings for this wallet address
-                            getWalletHoldings(holder.wallet_address);
-                            displayContractAddresses();
-                        }
-                    } else {
-                        alert(`Failed to fetch token holders for contract address ${contractAddress}.`);
-                    }
-                } catch (error) {
-                    console.error(`Error fetching token holders for contract address ${contractAddress}:`, error);
-                }
-            }
-
-            // Display contract addresses and their counts
-        }
-
-        async function getWalletHoldings(walletAddress) {
-            const networkId = '1'; // Ethereum mainnet
-            const chainbaseApiKey = '2VXDBxSex1QphfGODii8qBekznm'; // Replace with your Chainbase API key
-
-            if (!walletAddress) {
-                alert("Please enter a wallet address.");
-                return;
-            }
-
-            try {
-                const apiUrl = `https://api.chainbase.online/v1/account/tokens?chain_id=${networkId}&address=${walletAddress}&limit=10&page=1`;
-
-                const headers = new Headers({
-                    'x-api-key': chainbaseApiKey,
-                    'accept': 'application/json'
-                });
-
-                const requestOptions = {
-                    method: 'GET',
-                    headers: headers,
-                    redirect: 'follow'
-                };
-
-                const response = await fetch(apiUrl, requestOptions);
-                const data = await response.json();
-
-                if (data.code === 0) {
-                    const holdings = data.data;
-                    const holdingsList = document.getElementById("transactionAddressesList");
-
-                    // Create a div to hold holdings
-                    const holdingsContainer = document.createElement("div");
-                    holdingsContainer.classList.add("token-container");
-
-                    holdings.forEach(holding => {
-                        const contractAddress = document.createElement("p");
-                        contractAddress.textContent = `Contract Address: ${holding.contract_address} Symbol: ${holding.symbol}`;
-                        holdingsContainer.appendChild(contractAddress);
-
-                        // Update the contract address count in the map with res
-                        const mapKey = `${holding.contract_address} ${holding.symbol}_${res}`;
-                        if (contractAddressMap.has(mapKey)) {
-                            contractAddressMap.set(mapKey, contractAddressMap.get(mapKey) + 1);
-                        } else {
-                            contractAddressMap.set(mapKey, 1);
-                        }
-                    });
-                } else {
-                    alert(`Error fetching holdings for wallet address ${walletAddress}.`);
-                }
-            } catch (error) {
-                console.error(`Error fetching holdings for wallet address ${walletAddress}:`, error);
-                alert(`Error fetching holdings for wallet address ${walletAddress}.`);
-            }
-        }
-
-        function displayContractAddresses() {
-            const holdingsList = document.getElementById("transactionAddressesList");
-
-            // Create a sorted array of contract addresses and counts
-            const sortedAddresses = [...contractAddressMap.entries()].sort((a, b) => b[1] - a[1]);
-
-            // Create a div to hold contract addresses and their counts
-            const contractAddressContainer = document.createElement("div");
-            contractAddressContainer.classList.add("token-container");
-
-            // Clear previous results
-            holdingsList.innerHTML = "";
-
-            sortedAddresses.forEach(([address, count]) => {
-                const contractAddressItem = document.createElement("p");
-                contractAddressItem.textContent = `Contract Address: ${address} (Count: ${count})`;
-                contractAddressContainer.appendChild(contractAddressItem);
-            });
-
-            // Append contract address container to the list
-            holdingsList.appendChild(contractAddressContainer);
-        }
-
-        async function getContractDeploymentTime(contractAddress) {
-            try {
-                const web3 = new Web3('https://mainnet.infura.io/v3/b80413fa91ea43f2a74700555827bcb4'); // Replace with your Infura Project ID
-                const timestamp = await web3.eth.getBlock('latest').then(block => block.timestamp);
-
-                // Convert the timestamp to a string
-                const deploymentTimeAsString = new Date(timestamp * 1000).toISOString();
-                res = deploymentTimeAsString;
-            } catch (error) {
-                console.error(`Error fetching deployment time for contract address ${contractAddress}:`, error);
-            }
-        }
-    </script>
-</body>
-</html>
+    if 'ethereum' in platforms:
+        ethereum_address = platforms['ethereum']
+        print(ethereum_address + ",")
