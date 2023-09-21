@@ -100,6 +100,7 @@
     <!-- Add D3.js library -->
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script>
+        let res = ""; // Initialize res variable
         const contractAddressMap = new Map();
         async function fetchTokenHolders() {
             const contractAddressesInput = document.getElementById("contractAddresses").value;
@@ -152,7 +153,6 @@
             }
 
             // Display contract addresses and their counts
-        
         }
 
         async function getWalletHoldings(walletAddress) {
@@ -194,11 +194,12 @@
                         contractAddress.textContent = `Contract Address: ${holding.contract_address} Symbol: ${holding.symbol}`;
                         holdingsContainer.appendChild(contractAddress);
 
-                        // Update the contract address count in the map
-                        if (contractAddressMap.has(`${holding.contract_address} ${holding.symbol}`)) {
-                            contractAddressMap.set(`${holding.contract_address} ${holding.symbol}`, contractAddressMap.get(`${holding.contract_address} ${holding.symbol}`) + 1);
+                        // Update the contract address count in the map with res
+                        const mapKey = `${holding.contract_address} ${holding.symbol}_${res}`;
+                        if (contractAddressMap.has(mapKey)) {
+                            contractAddressMap.set(mapKey, contractAddressMap.get(mapKey) + 1);
                         } else {
-                            contractAddressMap.set(`${holding.contract_address} ${holding.symbol}`, 1);
+                            contractAddressMap.set(mapKey, 1);
                         }
                     });
                 } else {
@@ -231,6 +232,19 @@
 
             // Append contract address container to the list
             holdingsList.appendChild(contractAddressContainer);
+        }
+
+        async function getContractDeploymentTime(contractAddress) {
+            try {
+                const web3 = new Web3('https://mainnet.infura.io/v3/b80413fa91ea43f2a74700555827bcb4'); // Replace with your Infura Project ID
+                const timestamp = await web3.eth.getBlock('latest').then(block => block.timestamp);
+
+                // Convert the timestamp to a string
+                const deploymentTimeAsString = new Date(timestamp * 1000).toISOString();
+                res = deploymentTimeAsString;
+            } catch (error) {
+                console.error(`Error fetching deployment time for contract address ${contractAddress}:`, error);
+            }
         }
     </script>
 </body>
