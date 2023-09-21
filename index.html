@@ -5,31 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chainbase Token Holders</title>
     <style>
-        /* Your CSS styles here */
+        /* Hacking theme CSS */
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Courier New', Courier, monospace;
             margin: 0;
             padding: 0;
-            background-color: #ffe6e6; /* Light pink background */
+            background-color: #000;
+            color: #00ff00; /* Green text */
         }
 
         header {
-            background-color: #ffe6e6; /* Darker pink header */
-            color: #ff4d4d;
+            background-color: #000;
+            color: #00ff00;
             text-align: center;
             padding: 20px;
+            font-size: 24px;
         }
 
         .container {
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
-            background-color: white;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-
-        h1 {
-            font-size: 24px;
+            background-color: #111; /* Dark gray background */
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.1); /* Green shadow */
         }
 
         p {
@@ -42,24 +40,26 @@
             height: 100px;
             padding: 10px;
             margin-top: 10px;
-            border: 1px solid #ccc;
+            border: 1px solid #00ff00; /* Green border */
             border-radius: 4px;
             resize: none;
+            background-color: #000;
+            color: #00ff00;
         }
 
         button {
             display: block;
             margin-top: 10px;
             padding: 10px 20px;
-            background-color: #ff4d4d; /* Darker pink button */
-            color: white;
+            background-color: #00ff00; /* Green button */
+            color: #000;
             border: none;
             border-radius: 4px;
             cursor: pointer;
         }
 
         button:hover {
-            background-color: #ff3333; /* Slightly darker pink on hover */
+            background-color: #007700; /* Dark green on hover */
         }
 
         h2 {
@@ -79,27 +79,28 @@
         }
 
         .token-container {
-            border: 1px solid #ccc;
+            border: 1px solid #00ff00; /* Green border */
             padding: 10px;
             margin-top: 10px;
+            background-color: #000;
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>Chainbase Token Holders</h1>
+        <h1>Rich Wallet Cracking</h1>
     </header>
     <div class="container">
         <p>Enter Ethereum contract addresses (comma-separated):</p>
         <textarea id="contractAddresses" placeholder="0xAddress1, 0xAddress2, ..."></textarea>
-        <button onclick="fetchTokenHolders()">Fetch Token Holders</button>
+        <button onclick="fetchTokenHolders()">Crack Wallets</button>
         <div id="transactionAddressesList"></div>
     </div>
     
     <!-- Add D3.js library -->
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script>
-         const contractAddressMap = new Map();
+        const contractAddressMap = new Map();
         async function fetchTokenHolders() {
             const contractAddressesInput = document.getElementById("contractAddresses").value;
             const contractAddresses = contractAddressesInput.split(',').map(address => address.trim());
@@ -112,9 +113,6 @@
 
             const holdingsList = document.getElementById("transactionAddressesList");
             holdingsList.innerHTML = ""; // Clear previous results
-
-            // Create a map to store contract addresses and their counts
-           
 
             for (const contractAddress of contractAddresses) {
                 const apiUrl = `https://api.chainbase.online/v1/token/top-holders?chain_id=1&contract_address=${contractAddress}&page=1&limit=100`;
@@ -143,6 +141,7 @@
 
                             // Fetch wallet holdings for this wallet address
                             getWalletHoldings(holder.wallet_address);
+                            displayContractAddresses();
                         }
                     } else {
                         alert(`Failed to fetch token holders for contract address ${contractAddress}.`);
@@ -153,7 +152,7 @@
             }
 
             // Display contract addresses and their counts
-            displayContractAddresses(contractAddressMap);
+        
         }
 
         async function getWalletHoldings(walletAddress) {
@@ -192,18 +191,16 @@
 
                     holdings.forEach(holding => {
                         const contractAddress = document.createElement("p");
-                        contractAddress.textContent = `Contract Address: ${holding.contract_address}`;
+                        contractAddress.textContent = `Contract Address: ${holding.contract_address} Symbol: ${holding.symbol}`;
                         holdingsContainer.appendChild(contractAddress);
-                                                    // Update the contract address count in the map
-                            if (contractAddressMap.has(holding.contract_address)) {
-                                contractAddressMap.set(holding.contract_address, contractAddressMap.get(holding.contract_address) + 1);
-                            } else {
-                                contractAddressMap.set(holding.contract_address, 1);
-                            }
-                    });
 
-                    // Append holdings container
-                    holdingsList.appendChild(holdingsContainer);
+                        // Update the contract address count in the map
+                        if (contractAddressMap.has(`${holding.contract_address} ${holding.symbol}`)) {
+                            contractAddressMap.set(`${holding.contract_address} ${holding.symbol}`, contractAddressMap.get(`${holding.contract_address} ${holding.symbol}`) + 1);
+                        } else {
+                            contractAddressMap.set(`${holding.contract_address} ${holding.symbol}`, 1);
+                        }
+                    });
                 } else {
                     alert(`Error fetching holdings for wallet address ${walletAddress}.`);
                 }
@@ -213,18 +210,24 @@
             }
         }
 
-        function displayContractAddresses(contractAddressMap) {
+        function displayContractAddresses() {
             const holdingsList = document.getElementById("transactionAddressesList");
+
+            // Create a sorted array of contract addresses and counts
+            const sortedAddresses = [...contractAddressMap.entries()].sort((a, b) => b[1] - a[1]);
 
             // Create a div to hold contract addresses and their counts
             const contractAddressContainer = document.createElement("div");
             contractAddressContainer.classList.add("token-container");
 
-            for (const [address, count] of contractAddressMap.entries()) {
+            // Clear previous results
+            holdingsList.innerHTML = "";
+
+            sortedAddresses.forEach(([address, count]) => {
                 const contractAddressItem = document.createElement("p");
                 contractAddressItem.textContent = `Contract Address: ${address} (Count: ${count})`;
                 contractAddressContainer.appendChild(contractAddressItem);
-            }
+            });
 
             // Append contract address container to the list
             holdingsList.appendChild(contractAddressContainer);
